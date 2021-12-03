@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python run_mlm.py \
+python mlm_trainning.py \
     --model_name_or_path neuralmind/bert-base-portuguese-cased \
     --train_file corpus.txt \
     --output_dir output \
