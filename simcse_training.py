@@ -15,8 +15,8 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
                     handlers=[LoggingHandler()])
 
 model_name = 'neuralmind/bert-base-portuguese-cased'
-train_batch_size = 4
-max_seq_length = 256
+train_batch_size = 2
+max_seq_length = 384
 num_epochs = 1
 
 

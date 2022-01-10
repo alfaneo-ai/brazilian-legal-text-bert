@@ -7,7 +7,7 @@ python mlm_trainning.py \
     --overwrite_output_dir true \
     --do_train \
     --line_by_line \
-    --num_train_epochs 5.0 \
-    --per_device_train_batch_size 2 \
-    --max_seq_length 512 \
+    --num_train_epochs 1 \
+    --per_device_train_batch_size 8 \
+    --max_seq_length 384 \
     --max_train_samples 200
