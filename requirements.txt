@@ -7,3 +7,5 @@ protobuf
 transformers == 4.12.5
 googledrivedownloader>=0.4
 sentence-transformers==2.1.0
+pandas~=1.3.4
+tqdm~=4.62.3

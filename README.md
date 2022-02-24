@@ -6,7 +6,7 @@ Pre-Trainned BERT for legal texts
 To installation all dependencies, run command:
 
 ```shell
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 To execute tranning just run command ```run.sh```
