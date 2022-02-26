@@ -19,5 +19,7 @@ class ExamplePreparer:
         with open(filepath, 'r', encoding='utf8') as inputstream:
             for line in inputstream:
                 line = line.strip()
-                result.append(InputExample(texts=[line, line]))
+                tokens = line.split()
+                if len(tokens) > 10:
+                    result.append(InputExample(texts=[line, line]))
         return result
