@@ -28,7 +28,7 @@ class SimcseTrain:
         self.test_model_after_train(saved_model, test_evaluator)
 
     def prepare_train_dataloader(self):
-        corpus_path = 'resources/corpus.txt'
+        corpus_path = 'resources/corpus'
         corpus_samples = self.sampler.prepare_mlm(corpus_path)
         corpus_dataloader = DataLoader(corpus_samples,
                                        shuffle=True,

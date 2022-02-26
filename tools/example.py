@@ -1,5 +1,17 @@
+import os
+from glob import glob
+
 import pandas as pd
 from sentence_transformers.readers import InputExample
+
+
+def get_files(root_path, extension='*.*'):
+    """
+        - root_path: Path raiz a partir de onde serão realizadas a busca
+        - extension: Extensão de arquivo usado para filtrar o retorno
+        - retorna: Retorna todos os arquivos recursivamente a partir de um path raiz
+     """
+    return [y for x in os.walk(root_path) for y in glob(os.path.join(x[0], extension))]
 
 
 class ExamplePreparer:
@@ -14,12 +26,14 @@ class ExamplePreparer:
         return result
 
     @staticmethod
-    def prepare_mlm(filepath: str) -> list:
+    def prepare_mlm(rootpath: str) -> list:
         result = []
-        with open(filepath, 'r', encoding='utf8') as inputstream:
-            for line in inputstream:
-                line = line.strip()
-                tokens = line.split()
-                if len(tokens) > 10:
-                    result.append(InputExample(texts=[line, line]))
+        filepaths = get_files(rootpath)
+        for filepath in filepaths:
+            with open(filepath, 'r', encoding='utf8') as inputstream:
+                for line in inputstream:
+                    line = line.strip()
+                    tokens = line.split()
+                    if len(tokens) > 10:
+                        result.append(InputExample(texts=[line, line]))
         return result
