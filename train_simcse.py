@@ -9,13 +9,13 @@ from tools import *
 
 
 class SimcseTrain:
-    def __init__(self, model_name_or_path, epoch):
+    def __init__(self, model_name_or_path, epoch, batch_size=18):
         self.logger = AppLogger()
         self.downloader = Downloader()
         self.sampler = ExamplePreparer()
         self.model_name = model_name_or_path
         self.num_epochs = int(epoch)
-        self.train_batch_size = 5
+        self.train_batch_size = int(batch_size)
         self.max_seq_length = 256
 
     def train(self):
@@ -81,6 +81,6 @@ class SimcseTrain:
 
 
 if __name__ == '__main__':
-    model, epochs = parse_commands()
-    trainner = SimcseTrain(model, epochs)
+    model, epochs, batch_size = parse_commands()
+    trainner = SimcseTrain(model, epochs, batch_size)
     trainner.train()

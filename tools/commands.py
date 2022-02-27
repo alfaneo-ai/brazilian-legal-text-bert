@@ -14,5 +14,9 @@ def parse_commands():
                         action='store',
                         default='1',
                         help='Define epochs number')
+    parser.add_argument('--batch_size',
+                        action='store',
+                        default='18',
+                        help='Define number of batch size')
     args = vars(parser.parse_args())
-    return args['model'], args['epochs']
+    return args['model'], args['epochs'], args['batch_size']
