@@ -25,16 +25,13 @@ import logging
 import math
 import os
 import sys
-import pathlib
 from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
 
 import datasets
-from datasets import load_dataset
-from google_drive_downloader import GoogleDriveDownloader as gdd
-
 import transformers
+from datasets import load_dataset
 from transformers import (
     CONFIG_MAPPING,
     MODEL_FOR_MASKED_LM_MAPPING,
@@ -51,6 +48,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
 
+from tools import get_files
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.12.5")
@@ -72,7 +70,7 @@ class ModelArguments:
         default=None,
         metadata={
             "help": "The model checkpoint for weights initialization."
-            "Don't set if you want to train a model from scratch."
+                    "Don't set if you want to train a model from scratch."
         },
     )
     model_type: Optional[str] = field(
@@ -83,7 +81,7 @@ class ModelArguments:
         default=None,
         metadata={
             "help": "Override some existing default config settings when a model is trained from scratch. Example: "
-            "n_embd=10,resid_pdrop=0.2,scale_attn_weights=false,summary_type=cls_index"
+                    "n_embd=10,resid_pdrop=0.2,scale_attn_weights=false,summary_type=cls_index"
         },
     )
     config_name: Optional[str] = field(
@@ -108,7 +106,7 @@ class ModelArguments:
         default=False,
         metadata={
             "help": "Will use the token generated when running `transformers-cli login` (necessary to use this script "
-            "with private models)."
+                    "with private models)."
         },
     )
 
@@ -149,7 +147,7 @@ class DataTrainingArguments:
         default=None,
         metadata={
             "help": "The maximum total input sequence length after tokenization. Sequences longer "
-            "than this will be truncated."
+                    "than this will be truncated."
         },
     )
     preprocessing_num_workers: Optional[int] = field(
@@ -167,21 +165,21 @@ class DataTrainingArguments:
         default=False,
         metadata={
             "help": "Whether to pad all samples to `max_seq_length`. "
-            "If False, will pad the samples dynamically when batching to the maximum length in the batch."
+                    "If False, will pad the samples dynamically when batching to the maximum length in the batch."
         },
     )
     max_train_samples: Optional[int] = field(
         default=None,
         metadata={
             "help": "For debugging purposes or quicker training, truncate the number of training examples to this "
-            "value if set."
+                    "value if set."
         },
     )
     max_eval_samples: Optional[int] = field(
         default=None,
         metadata={
             "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
-            "value if set."
+                    "value if set."
         },
     )
 
@@ -306,14 +304,6 @@ def main():
                 cache_dir=model_args.cache_dir,
             )
 
-    # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
-    # https://huggingface.co/docs/datasets/loading_datasets.html.
-
-    # Load pretrained model and tokenizer
-    #
-    # Distributed training:
-    # The .from_pretrained methods guarantee that only one local process can concurrently
-    # download model & vocab.
     config_kwargs = {
         "cache_dir": model_args.cache_dir,
         "revision": model_args.model_revision,
@@ -443,7 +433,7 @@ def main():
                 total_length = (total_length // max_seq_length) * max_seq_length
             # Split by chunks of max_len.
             result = {
-                k: [t[i : i + max_seq_length] for i in range(0, total_length, max_seq_length)]
+                k: [t[i: i + max_seq_length] for i in range(0, total_length, max_seq_length)]
                 for k, t in concatenated_examples.items()
             }
             return result
@@ -554,14 +544,16 @@ def _mp_fn(index):
     main()
 
 
-def download_dataset_google_drive():
-    curr_dir = pathlib.Path().resolve()
-    filepath = os.path.join(curr_dir, 'corpus.txt')
-    gdd.download_file_from_google_drive(file_id='1MChxiBwQMKb1AUdDbt88SsRlQY5tRxi5',
-                                        dest_path=filepath,
-                                        unzip=False)
+def join_files():
+    filenames = get_files('resources/corpus_train')
+
+    with open("resources/corpus_train.txt", "w") as outfile:
+        for filename in filenames:
+            with open(filename) as infile:
+                contents = infile.read()
+                outfile.write(contents)
 
 
 if __name__ == "__main__":
-    download_dataset_google_drive()
+    join_files()
     main()

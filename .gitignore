@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 .idea
+resources/corpus_train.txt
 # Distribution / packaging
 .Python
 build/

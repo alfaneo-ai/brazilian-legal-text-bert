@@ -10,23 +10,22 @@ from tools import *
 
 
 class FinetunningTrain:
-    def __init__(self, model_name_or_path, epoch=1, batch_size=18):
+    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq_length):
         self.logger = AppLogger()
         self.downloader = Downloader()
         self.sampler = ExamplePreparer()
         self.model_name = model_name_or_path
-        self.num_epochs = int(epoch)
-        self.train_batch_size = int(batch_size)
-        self.max_seq_length = 256
+        self.num_epochs = num_epochs
+        self.train_batch_size = train_batch_size
+        self.max_seq_length = max_seq_length
 
     def train(self):
         train_dataloader = self.prepare_train_dataloader()
         dev_evaluator = self.prepare_evaluator('dev.csv')
         test_evaluator = self.prepare_evaluator('test.csv')
-        model = self.prepare_model()
-        self.test_model_before_train(model, test_evaluator)
-        saved_model = self.make_train(model, train_dataloader, dev_evaluator)
-        self.test_model_after_train(saved_model, test_evaluator)
+        untrained_model = self.prepare_model()
+        trained_model = self.make_train(untrained_model, train_dataloader, dev_evaluator)
+        self.test_model_after_train(trained_model, test_evaluator)
 
     def prepare_train_dataloader(self):
         filepath = 'resources/train.csv'
@@ -84,6 +83,6 @@ class FinetunningTrain:
 
 
 if __name__ == '__main__':
-    model, epochs, batch_size = parse_commands()
-    trainner = FinetunningTrain(model, epochs, batch_size)
+    model, epochs, batch_size, max_seq = parse_commands()
+    trainner = FinetunningTrain(model, epochs, batch_size, max_seq)
     trainner.train()
