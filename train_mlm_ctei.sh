@@ -20,7 +20,11 @@ python train_mlm.py \
     --per_device_eval_batch_size 8 \
     --preprocessing_num_workers 12 \
     --max_seq_length 384 \
-    --gradient_checkpointing \
     --gradient_accumulation_steps 8 \
+    --adam_beta1 0.9 \
+    --adam_beta2 0.999 \
+    --adam_epsilon 0.000001 \
     --learning_rate 0.0001 \
+    --weight_decay 0.01 \
     --warmup_steps 10000
+
