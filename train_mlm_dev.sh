@@ -22,5 +22,8 @@ python train_mlm.py \
     --max_seq_length 384 \
     --gradient_checkpointing \
     --gradient_accumulation_steps 64 \
+    --learning_rate 0.0001 \
+    --warmup_steps 10000 \
     --max_train_samples 1000 \
     --max_eval_samples 100
+

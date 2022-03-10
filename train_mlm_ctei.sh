@@ -12,8 +12,8 @@ python train_mlm.py \
     --line_by_line \
     --fp16 \
     --load_best_model_at_end \
-    --save_steps 5000 \
-    --eval_steps 5000 \
+    --save_steps 2500 \
+    --eval_steps 2500 \
     --evaluation_strategy steps \
     --num_train_epochs 5 \
     --per_device_train_batch_size 8 \
@@ -21,4 +21,6 @@ python train_mlm.py \
     --preprocessing_num_workers 12 \
     --max_seq_length 384 \
     --gradient_checkpointing \
-    --gradient_accumulation_steps 8
+    --gradient_accumulation_steps 8 \
+    --learning_rate 0.0001 \
+    --warmup_steps 10000
