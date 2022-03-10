@@ -16,8 +16,9 @@ python train_mlm.py \
     --eval_steps 5000 \
     --evaluation_strategy steps \
     --num_train_epochs 5 \
-    --per_device_train_batch_size 5 \
-    --per_device_eval_batch_size 5 \
-    --preprocessing_num_workers 8 \
-    --max_seq_length 384
-
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 8 \
+    --preprocessing_num_workers 12 \
+    --max_seq_length 384 \
+    --gradient_checkpointing \
+    --gradient_accumulation_steps 8
