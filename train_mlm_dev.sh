@@ -1,7 +1,8 @@
 #!/bin/bash
 
 python train_mlm.py \
-    --model_name_or_path neuralmind/bert-base-portuguese-cased \
+    --config_name /home/cviegas/Workspace/mestrado/brazilian-legal-text-bert/tokenizer/config.json \
+    --tokenizer_name /home/cviegas/Workspace/mestrado/brazilian-legal-text-bert/tokenizer \
     --train_file resources/corpus_train.txt \
     --validation_file resources/corpus_dev.txt \
     --output_dir output \
