@@ -1,8 +1,8 @@
 #!/bin/bash
 
 python train_mlm.py \
-    --config_name /home/charles/modelos/brazilian-legal-text-bert/tokenizer/config.json \
-    --tokenizer_name /home/charles/modelos/brazilian-legal-text-bert/tokenizer \
+    --config_name /home/charles/brazilian-legal-text-bert/tokenizer/config.json \
+    --tokenizer_name /home/charles/brazilian-legal-text-bert/tokenizer \
     --train_file resources/corpus_train.txt \
     --validation_file resources/corpus_dev.txt \
     --output_dir output/bertlawbr \
