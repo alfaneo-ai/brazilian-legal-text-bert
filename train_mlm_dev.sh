@@ -1,17 +1,16 @@
 #!/bin/bash
 
 python train_mlm.py \
-    --config_name /home/cviegas/Workspace/mestrado/brazilian-legal-text-bert/tokenizer/config.json \
-    --tokenizer_name /home/cviegas/Workspace/mestrado/brazilian-legal-text-bert/tokenizer \
+    --config_name /dados/Workspace/mestrado/brazilian-legal-text-bert/tokenizer/config.json \
+    --tokenizer_name /dados/Workspace/mestrado/brazilian-legal-text-bert/tokenizer \
     --train_file resources/corpus_train.txt \
     --validation_file resources/corpus_dev.txt \
-    --output_dir output \
-    --overwrite_output_dir false \
+    --output_dir output/from_scratch \
+    --overwrite_output_dir true \
     --do_train \
     --do_eval \
     --do_predict \
     --line_by_line \
-    --fp16 \
     --load_best_model_at_end \
     --save_steps 500 \
     --eval_steps 500 \
@@ -28,6 +27,6 @@ python train_mlm.py \
     --learning_rate 0.0001 \
     --weight_decay 0.01 \
     --warmup_steps 10000 \
-    --max_train_samples 1000 \
-    --max_eval_samples 100
+    --max_train_samples 100 \
+    --max_eval_samples 10
 
