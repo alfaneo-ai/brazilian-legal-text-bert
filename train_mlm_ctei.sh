@@ -5,7 +5,7 @@ python train_mlm.py \
     --tokenizer_name /home/charles/modelos/brazilian-legal-text-bert/tokenizer \
     --train_file resources/corpus_train.txt \
     --validation_file resources/corpus_dev.txt \
-    --output_dir output \
+    --output_dir output/bertlawbr \
     --overwrite_output_dir false \
     --do_train \
     --do_eval \
