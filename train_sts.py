@@ -4,13 +4,14 @@ from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import models, losses
 from sentence_transformers.evaluation import BinaryClassificationEvaluator
+from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator
 from torch.utils.data import DataLoader
 
 from tools import *
 
 
 class FinetunningTrain:
-    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq_length):
+    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq_length, train_type='binary'):
         self.logger = AppLogger()
         self.downloader = Downloader()
         self.sampler = ExamplePreparer()
@@ -18,6 +19,7 @@ class FinetunningTrain:
         self.num_epochs = num_epochs
         self.train_batch_size = train_batch_size
         self.max_seq_length = max_seq_length
+        self.train_type = train_type
 
     def train(self):
         train_dataloader = self.prepare_train_dataloader()
@@ -29,7 +31,7 @@ class FinetunningTrain:
 
     def prepare_train_dataloader(self):
         filepath = 'resources/train.csv'
-        samples = self.sampler.prepare_sts(filepath)
+        samples = self.sampler.prepare_sts(filepath, self.train_type)
         dataloader = DataLoader(samples,
                                 shuffle=True,
                                 batch_size=self.train_batch_size,
@@ -38,26 +40,29 @@ class FinetunningTrain:
 
     def prepare_evaluator(self, filename):
         filepath = f'resources/{filename}'
-        samples = self.sampler.prepare_sts(filepath)
-        evaluator = BinaryClassificationEvaluator.from_input_examples(samples,
-                                                                      show_progress_bar=True,
-                                                                      batch_size=self.train_batch_size,
-                                                                      name=f'sts-{filename}')
+        samples = self.sampler.prepare_sts(filepath, self.train_type)
+        if self.train_type == 'binary':
+            evaluator = BinaryClassificationEvaluator.from_input_examples(samples,
+                                                                          show_progress_bar=True,
+                                                                          batch_size=self.train_batch_size,
+                                                                          name=f'sts-{filename}')
+        elif self.train_type == 'embedding':
+            evaluator = EmbeddingSimilarityEvaluator.from_input_examples(samples, batch_size=self.train_batch_size,
+                                                                         name=f'sts-{filename}', show_progress_bar=True)
         return evaluator
 
     def prepare_model(self):
         word_embedding_model = models.Transformer(self.model_name, max_seq_length=self.max_seq_length)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
-        return SentenceTransformer(modules=[word_embedding_model, pooling_model])
+        return SentenceTransformer(modules=[word_embedding_model, pooling_model],
+                                   use_auth_token='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')
 
     def make_train(self, model, corpus_dataloader, dev_evaluator):
         model_checkpoint_path = 'output/checkpoints'
         model_save_path = 'output/finetunning-{}'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
         warmup_steps = math.ceil(len(corpus_dataloader) * self.num_epochs * 0.1)
         evaluation_steps = int(len(corpus_dataloader) * 0.5)
-        train_loss = losses.SoftmaxLoss(model=model,
-                                        sentence_embedding_dimension=model.get_sentence_embedding_dimension(),
-                                        num_labels=2)
+        train_loss = self.get_loss(model)
         model.fit(train_objectives=[(corpus_dataloader, train_loss)],
                   evaluator=dev_evaluator,
                   epochs=self.num_epochs,
@@ -68,9 +73,23 @@ class FinetunningTrain:
                   save_best_model=True,
                   checkpoint_path=model_checkpoint_path,
                   checkpoint_save_steps=evaluation_steps,
-                  use_amp=True
+                  use_amp=False
                   )
+
+        message = 'finetunning-{}'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        model.save_to_hub('bertlawbr-scale-sts', organization='juridics', private=False, commit_message=message,
+                          exist_ok=True, replace_model_card=False)
+
         return model_save_path
+
+    def get_loss(self, model):
+        if self.train_type == 'binary':
+            train_loss = losses.SoftmaxLoss(model=model,
+                                            sentence_embedding_dimension=model.get_sentence_embedding_dimension(),
+                                            num_labels=2)
+        elif self.train_type == 'embedding':
+            train_loss = losses.CosineSimilarityLoss(model=model)
+        return train_loss
 
     @staticmethod
     def test_model_before_train(model, test_evaluator):
@@ -83,6 +102,6 @@ class FinetunningTrain:
 
 
 if __name__ == '__main__':
-    model, epochs, batch_size, max_seq = parse_commands()
-    trainner = FinetunningTrain(model, epochs, batch_size, max_seq)
+    model, epochs, batch_size, max_seq, train_type = parse_commands()
+    trainner = FinetunningTrain(model, epochs, batch_size, max_seq, train_type)
     trainner.train()

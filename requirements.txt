@@ -1,12 +1,15 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.8.1+cu111
 accelerate
 numpy
-torch >= 1.3
 datasets >= 1.8.0
 sentencepiece != 0.1.92
 protobuf
 transformers == 4.12.5
 tokenizers==0.10.3
 googledrivedownloader>=0.4
-sentence-transformers==2.1.0
+# sentence-transformers==2.1.0
+sentence-transformers==2.2.2
 pandas~=1.3.4
 tqdm~=4.62.3
+huggingface_hub

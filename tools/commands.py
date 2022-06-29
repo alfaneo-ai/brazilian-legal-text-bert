@@ -17,7 +17,7 @@ def parse_commands():
                         help='Define epochs number')
     parser.add_argument('--batch_size',
                         action='store',
-                        default=8,
+                        default=2,
                         type=int,
                         help='Define number of batch size')
     parser.add_argument('--max_seq',
@@ -25,5 +25,10 @@ def parse_commands():
                         default=384,
                         type=int,
                         help='Define max sequence size')
+    parser.add_argument('--train_type',
+                        action='store',
+                        default='binary',
+                        type=str,
+                        help='Define train type (binary or embedding)')
     args = vars(parser.parse_args())
-    return args['model'], args['epochs'], args['batch_size'], args['max_seq']
+    return args['model'], args['epochs'], args['batch_size'], args['max_seq'], args['train_type']

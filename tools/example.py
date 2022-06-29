@@ -17,12 +17,17 @@ def get_files(root_path, extension='*.*'):
 class ExamplePreparer:
 
     @staticmethod
-    def prepare_sts(filepath) -> list:
+    def prepare_sts(filepath, train_type) -> list:
         dataset = pd.read_csv(filepath, sep='|', encoding='utf-8-sig')
+        dataset = dataset.sample(frac=0.05)
         result = []
         for index, row in dataset.iterrows():
-            result.append(InputExample(texts=[row['ementa1'], row['ementa2']], label=int(row['similarity'])))
-            result.append(InputExample(texts=[row['ementa2'], row['ementa1']], label=int(row['similarity'])))
+            if train_type == 'binary':
+                score = int(row['similarity'])
+            elif train_type == 'embedding':
+                score = float(row['similarity']) / 4.0
+            result.append(InputExample(texts=[row['ementa1'], row['ementa2']], label=score))
+            result.append(InputExample(texts=[row['ementa2'], row['ementa1']], label=score))
         return result
 
     @staticmethod
