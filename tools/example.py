@@ -19,7 +19,7 @@ class ExamplePreparer:
     @staticmethod
     def prepare_sts(filepath, train_type) -> list:
         dataset = pd.read_csv(filepath, sep='|', encoding='utf-8-sig')
-        dataset = dataset.sample(frac=0.05)
+        # dataset = dataset.sample(frac=0.05)
         result = []
         for index, row in dataset.iterrows():
             if train_type == 'binary':
