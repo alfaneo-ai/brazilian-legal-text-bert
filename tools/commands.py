@@ -29,6 +29,10 @@ def parse_commands():
                         action='store',
                         default='binary',
                         type=str,
-                        help='Define train type (binary or embedding)')
+                        help='Define train type (binary, scale, triplet)')
+    parser.add_argument('--sample',
+                        action='store_true',
+                        default=False,
+                        help='Define is a sample')
     args = vars(parser.parse_args())
-    return args['model'], args['epochs'], args['batch_size'], args['max_seq'], args['train_type']
+    return args['model'], args['epochs'], args['batch_size'], args['max_seq'], args['train_type'], args['sample']
