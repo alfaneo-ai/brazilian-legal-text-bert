@@ -61,7 +61,7 @@ class FinetunningTrain:
         model_checkpoint_path = 'output/checkpoints'
         model_save_path = 'output/finetunning-{}'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
         warmup_steps = math.ceil(len(corpus_dataloader) * self.num_epochs * 0.1)
-        evaluation_steps = int(len(corpus_dataloader) * 0.5)
+        evaluation_steps = int(len(corpus_dataloader) * 1)
         train_loss = self.get_loss(model)
         model.fit(train_objectives=[(corpus_dataloader, train_loss)],
                   evaluator=dev_evaluator,
