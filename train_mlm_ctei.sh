@@ -27,5 +27,8 @@ python train_mlm.py \
     --adam_epsilon 0.000001 \
     --learning_rate 0.0001 \
     --weight_decay 0.01 \
-    --warmup_steps 10000
+    --warmup_steps 10000 \
+    --push_to_hub \
+    --use_auth_token \
+    --hub_model_id juridics/bertlaw-base-portuguese-uncased
 

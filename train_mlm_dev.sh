@@ -28,5 +28,8 @@ python train_mlm.py \
     --weight_decay 0.01 \
     --warmup_steps 10000 \
     --max_train_samples 100 \
-    --max_eval_samples 10
+    --max_eval_samples 10 \
+    --push_to_hub \
+    --use_auth_token \
+    --hub_model_id juridics/bertlaw-base-portuguese-uncased
 
