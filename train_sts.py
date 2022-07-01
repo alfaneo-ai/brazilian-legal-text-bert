@@ -83,7 +83,7 @@ class FinetunningTrain:
                   use_amp=False
                   )
 
-        message = 'finetunning-{}'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        message = f'{self.train_type}-{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         name = f'bertlawbr-{self.train_type}-sts'
         model.save_to_hub(name, organization='juridics', private=False, commit_message=message,
                           exist_ok=True, replace_model_card=False)
