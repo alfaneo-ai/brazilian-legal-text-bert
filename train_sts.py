@@ -11,8 +11,9 @@ from torch.utils.data import DataLoader
 from tools import *
 
 
-class FinetunningTrain:
-    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq_length, train_goal, is_sample):
+class FinetunningStsTrain:
+    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq_length, train_goal, prefix_name,
+                 is_sample, to_lower):
         self.logger = AppLogger()
         self.downloader = Downloader()
         self.sampler = ExamplePreparer()
@@ -22,18 +23,18 @@ class FinetunningTrain:
         self.max_seq_length = max_seq_length
         self.train_type = train_goal
         self.is_sample = is_sample
+        self.prefix_name = prefix_name
+        self.to_lowercase = to_lower
 
     def train(self):
         train_dataloader = self.prepare_train_dataloader()
         dev_evaluator = self.prepare_evaluator('dev.csv')
-        test_evaluator = self.prepare_evaluator('test.csv')
         untrained_model = self.prepare_model()
-        trained_model = self.make_train(untrained_model, train_dataloader, dev_evaluator)
-        self.test_model_after_train(trained_model, test_evaluator)
+        self.make_train(untrained_model, train_dataloader, dev_evaluator)
 
     def prepare_train_dataloader(self):
         filepath = os.path.join('resources', self.train_type, 'train.csv')
-        samples = self.sampler.prepare_sts(filepath, self.train_type, self.is_sample)
+        samples = self.sampler.prepare_sts(filepath, self.train_type, self.is_sample, self.to_lowercase)
         dataloader = DataLoader(samples,
                                 shuffle=True,
                                 batch_size=self.train_batch_size,
@@ -42,7 +43,7 @@ class FinetunningTrain:
 
     def prepare_evaluator(self, filename):
         filepath = os.path.join('resources', self.train_type, filename)
-        samples = self.sampler.prepare_sts(filepath, self.train_type, self.is_sample)
+        samples = self.sampler.prepare_sts(filepath, self.train_type, self.is_sample, self.to_lowercase)
         if self.train_type == 'binary':
             evaluator = BinaryClassificationEvaluator.from_input_examples(samples,
                                                                           show_progress_bar=True,
@@ -66,7 +67,7 @@ class FinetunningTrain:
 
     def make_train(self, model, corpus_dataloader, dev_evaluator):
         model_checkpoint_path = 'output/checkpoints'
-        model_save_path = 'output/finetunning-{}'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        model_save_path = f'output/{self.prefix_name}-{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         warmup_steps = math.ceil(len(corpus_dataloader) * self.num_epochs * 0.1)
         evaluation_steps = int(len(corpus_dataloader) * 1)
         train_loss = self.get_loss(model)
@@ -80,11 +81,11 @@ class FinetunningTrain:
                   save_best_model=True,
                   checkpoint_path=model_checkpoint_path,
                   checkpoint_save_steps=evaluation_steps,
-                  use_amp=False
+                  use_amp=True
                   )
 
         message = f'{self.train_type}-{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-        name = f'bertlawbr-{self.train_type}-sts'
+        name = f'{self.prefix_name}-sts-{self.train_type}'
         model.save_to_hub(name, organization='juridics', private=False, commit_message=message,
                           exist_ok=True, replace_model_card=False)
 
@@ -98,21 +99,13 @@ class FinetunningTrain:
         elif self.train_type == 'scale':
             train_loss = losses.CosineSimilarityLoss(model=model)
         elif self.train_type == 'triplet':
-            train_loss = losses.TripletLoss(model=model)
+            train_loss = losses.TripletLoss(model=model, distance_metric=losses.TripletDistanceMetric.COSINE)
 
         return train_loss
 
-    @staticmethod
-    def test_model_before_train(model, test_evaluator):
-        test_evaluator(model)
-
-    @staticmethod
-    def test_model_after_train(model_saved_path, test_evaluator):
-        saved_model = SentenceTransformer(model_saved_path)
-        test_evaluator(saved_model, output_path=model_saved_path)
-
 
 if __name__ == '__main__':
-    model, epochs, batch_size, max_seq, train_type, sample = parse_commands()
-    trainner = FinetunningTrain(model, epochs, batch_size, max_seq, train_type, sample)
+    model, epochs, batch_size, max_seq, train_type, hub_prefix_name, sample, to_lowercase = parse_commands()
+    trainner = FinetunningStsTrain(model, epochs, batch_size, max_seq, train_type, hub_prefix_name, sample,
+                                   to_lowercase)
     trainner.train()
