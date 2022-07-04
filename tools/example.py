@@ -30,11 +30,11 @@ class ExamplePreparer:
                 result.append(InputExample(texts=[ementa1, ementa2, ementa3]))
             elif train_type == 'binary':
                 result.append(InputExample(texts=[ementa1, ementa2], label=int(row['similarity'])))
-                result.append(InputExample(texts=[ementa2, ementa1], label=int(row['similarity'])))
+                # result.append(InputExample(texts=[ementa2, ementa1], label=int(row['similarity'])))
             elif train_type == 'scale':
                 score = float(row['similarity']) / 4.0
                 result.append(InputExample(texts=[ementa1, ementa2], label=score))
-                result.append(InputExample(texts=[ementa2, ementa1], label=score))
+                # result.append(InputExample(texts=[ementa2, ementa1], label=score))
 
         return result
 
