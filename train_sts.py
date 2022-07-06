@@ -74,7 +74,7 @@ class FinetunningStsTrain:
         model.fit(train_objectives=[(corpus_dataloader, train_loss)],
                   evaluator=dev_evaluator,
                   epochs=self.num_epochs,
-                  evaluation_steps=evaluation_steps,
+                  # evaluation_steps=evaluation_steps,
                   warmup_steps=warmup_steps,
                   output_path=model_save_path,
                   optimizer_params={'lr': 5e-5},
