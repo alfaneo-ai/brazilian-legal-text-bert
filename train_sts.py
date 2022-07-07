@@ -1,5 +1,6 @@
 import math
 import os
+import zipfile
 from datetime import datetime
 
 from sentence_transformers import SentenceTransformer
@@ -104,7 +105,15 @@ class FinetunningStsTrain:
         return train_loss
 
 
+def unzip():
+    target = PathUtil.build_path('resources', 'binary')
+    source = PathUtil.join(target, 'data.zip')
+    with zipfile.ZipFile(source, 'r') as zip_ref:
+        zip_ref.extractall(target)
+
+
 if __name__ == '__main__':
+    unzip()
     model, epochs, batch_size, max_seq, train_type, hub_prefix_name, sample, to_lowercase = parse_commands()
     trainner = FinetunningStsTrain(model, epochs, batch_size, max_seq, train_type, hub_prefix_name, sample,
                                    to_lowercase)
