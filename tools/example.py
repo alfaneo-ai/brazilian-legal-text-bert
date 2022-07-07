@@ -1,8 +1,9 @@
 import os
 from glob import glob
-from sklearn.utils import shuffle
+
 import pandas as pd
 from sentence_transformers.readers import InputExample
+from sklearn.utils import shuffle
 
 
 def get_files(root_path, extension='*.*'):
@@ -24,15 +25,19 @@ class ExamplePreparer:
         result = []
         for index, row in dataset.iterrows():
             ementa1 = row['ementa1'].lower() if to_lowercase else row['ementa1']
-            ementa2 = row['ementa2'].lower() if to_lowercase else row['ementa2']
-            if train_type == 'triplet':
-                ementa3 = row['ementa3'].lower() if to_lowercase else row['ementa3']
-                result.append(InputExample(texts=[ementa1, ementa2, ementa3]))
-            elif train_type == 'binary':
-                result.append(InputExample(texts=[ementa1, ementa2], label=int(row['similarity'])))
-            elif train_type == 'scale':
-                score = float(row['similarity']) / 4.0
-                result.append(InputExample(texts=[ementa1, ementa2], label=score))
+            if train_type == 'batch_triplet':
+                label = int(row['group'])
+                result.append(InputExample(texts=[ementa1], label=label))
+            else:
+                ementa2 = row['ementa2'].lower() if to_lowercase else row['ementa2']
+                if train_type == 'triplet':
+                    ementa3 = row['ementa3'].lower() if to_lowercase else row['ementa3']
+                    result.append(InputExample(texts=[ementa1, ementa2, ementa3]))
+                elif train_type == 'binary':
+                    result.append(InputExample(texts=[ementa1, ementa2], label=int(row['similarity'])))
+                elif train_type == 'scale':
+                    score = float(row['similarity']) / 4.0
+                    result.append(InputExample(texts=[ementa1, ementa2], label=score))
         result = shuffle(result, random_state=0)
         return result
 

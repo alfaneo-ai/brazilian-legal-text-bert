@@ -5,8 +5,9 @@ from abc import ABC, abstractmethod
 
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import models, losses
-from sentence_transformers.evaluation import BinaryClassificationEvaluator, TripletEvaluator
+from sentence_transformers.evaluation import BinaryClassificationEvaluator, TripletEvaluator, LabelAccuracyEvaluator
 from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator
+from sentence_transformers.losses.BatchHardTripletLoss import BatchHardTripletLossDistanceFunction
 from torch.utils.data import DataLoader
 
 from tools import *
@@ -64,16 +65,27 @@ class StsTrainer(ABC):
         saved_path = os.path.join('output', self.train_type)
         warmup_steps = math.ceil(len(corpus_dataloader) * self.num_epochs * 0.1)
         train_loss = self.get_loss(model_to_train)
-        model_to_train.fit(train_objectives=[(corpus_dataloader, train_loss)],
-                           evaluator=dev_evaluator,
-                           epochs=self.num_epochs,
-                           warmup_steps=warmup_steps,
-                           output_path=saved_path,
-                           optimizer_params={'lr': 5e-5},
-                           save_best_model=True,
-                           checkpoint_path=checkpoint_path,
-                           checkpoint_save_steps=checkpoint_steps,
-                           use_amp=True)
+        if dev_evaluator:
+            model_to_train.fit(train_objectives=[(corpus_dataloader, train_loss)],
+                               evaluator=dev_evaluator,
+                               epochs=self.num_epochs,
+                               warmup_steps=warmup_steps,
+                               output_path=saved_path,
+                               optimizer_params={'lr': 5e-5},
+                               save_best_model=True,
+                               checkpoint_path=checkpoint_path,
+                               checkpoint_save_steps=checkpoint_steps,
+                               use_amp=True)
+        else:
+            model_to_train.fit(train_objectives=[(corpus_dataloader, train_loss)],
+                               epochs=self.num_epochs,
+                               warmup_steps=warmup_steps,
+                               output_path=saved_path,
+                               optimizer_params={'lr': 5e-5},
+                               save_best_model=False,
+                               checkpoint_path=checkpoint_path,
+                               checkpoint_save_steps=checkpoint_steps,
+                               use_amp=True)
         message = 'Automatic commit'
         name = self._get_trained_model_name()
         model_to_train.save_to_hub(name, organization='juridics', private=False, commit_message=message,
@@ -122,21 +134,6 @@ class BinaryStsTrainer(StsTrainer):
                                   num_labels=2)
 
 
-class TripletStsTrainer(StsTrainer):
-    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample=False):
-        StsTrainer.__init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample)
-        self.train_type = 'triplet'
-
-    def prepare_evaluator(self, filename):
-        filepath = os.path.join('resources', self.train_type, filename)
-        samples = self.sampler.prepare_sts(filepath, self.train_type, self.is_sample, self.to_lowercase)
-        return TripletEvaluator.from_input_examples(samples, batch_size=self.train_batch_size,
-                                                    name=self.train_type, show_progress_bar=True)
-
-    def get_loss(self, model_to_train):
-        return losses.TripletLoss(model=model_to_train, distance_metric=losses.TripletDistanceMetric.COSINE)
-
-
 class ScaleStsTrainer(StsTrainer):
     def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample=False):
         StsTrainer.__init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample)
@@ -152,6 +149,34 @@ class ScaleStsTrainer(StsTrainer):
         return losses.CosineSimilarityLoss(model=model_to_train)
 
 
+class TripletStsTrainer(StsTrainer):
+    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample=False):
+        StsTrainer.__init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample)
+        self.train_type = 'triplet'
+
+    def prepare_evaluator(self, filename):
+        filepath = os.path.join('resources', self.train_type, filename)
+        samples = self.sampler.prepare_sts(filepath, self.train_type, self.is_sample, self.to_lowercase)
+        return TripletEvaluator.from_input_examples(samples, batch_size=self.train_batch_size,
+                                                    name=self.train_type, show_progress_bar=True)
+
+    def get_loss(self, model_to_train):
+        return losses.TripletLoss(model=model_to_train, distance_metric=losses.TripletDistanceMetric.COSINE)
+
+
+class BatchTripletStsTrainer(StsTrainer):
+    def __init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample=False):
+        StsTrainer.__init__(self, model_name_or_path, num_epochs, train_batch_size, max_seq, is_sample)
+        self.train_type = 'batch_triplet'
+
+    def prepare_evaluator(self, filename):
+        return None
+
+    def get_loss(self, model_to_train):
+        return losses.BatchAllTripletLoss(model=model_to_train,
+                                          distance_metric=BatchHardTripletLossDistanceFunction.cosine_distance)
+
+
 if __name__ == '__main__':
     unzip()
     model, epochs, batch_size, max_seq, train_type, sample, to_lowercase = parse_commands()
@@ -163,4 +188,6 @@ if __name__ == '__main__':
         trainner = TripletStsTrainer(model, epochs, batch_size, max_seq, sample)
     elif train_type == 'contrastive':
         trainner = ContrastiveStsTrainer(model, epochs, batch_size, max_seq, sample)
+    elif train_type == 'batch_triplet':
+        trainner = BatchTripletStsTrainer(model, epochs, batch_size, max_seq, sample)
     trainner.train()
