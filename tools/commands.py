@@ -29,12 +29,7 @@ def parse_commands():
                         action='store',
                         default='binary',
                         type=str,
-                        help='Define train type (binary, scale, triplet)')
-    parser.add_argument('--hub_prefix_name',
-                        action='store',
-                        default='bertlaw-base-portuguese',
-                        type=str,
-                        help='Define naminig for publish in huggingface')
+                        help='Define train type (binary, scale, triplet, contrastive)')
     parser.add_argument('--sample',
                         action='store_true',
                         default=False,
@@ -44,5 +39,4 @@ def parse_commands():
                         default=False,
                         help='Define if data should be converted to lowerase')
     args = vars(parser.parse_args())
-    return args['model'], args['epochs'], args['batch_size'], args['max_seq'], args['train_type'], args[
-        'hub_prefix_name'], args['sample'], args['to_lowercase']
+    return args['model'], args['epochs'], args['batch_size'], args['max_seq'], args['train_type'], args['sample'], args['to_lowercase']
