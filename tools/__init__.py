@@ -5,3 +5,5 @@ from .logger import AppLogger
 from .dataset import DatasetManager
 from .cleaner import Cleaner
 from .path import PathUtil
+from .preprocess import TextNormalization
+text_normalization = TextNormalization()
