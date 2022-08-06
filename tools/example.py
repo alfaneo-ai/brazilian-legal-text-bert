@@ -36,7 +36,7 @@ class ExamplePreparer:
                 elif train_type == 'binary':
                     result.append(InputExample(texts=[ementa1, ementa2], label=int(row['similarity'])))
                 elif train_type == 'scale':
-                    score = float(row['similarity']) / 4.0
+                    score = float(row['similarity']) / 5.0
                     result.append(InputExample(texts=[ementa1, ementa2], label=score))
         result = shuffle(result, random_state=0)
         return result
