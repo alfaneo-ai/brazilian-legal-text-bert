@@ -30,5 +30,5 @@ python train_mlm.py \
     --warmup_steps 10000 \
     --push_to_hub \
     --use_auth_token \
-    --hub_model_id juridics/bertlaw-base-portuguese-uncased
+    --hub_model_id juridics/jurisbert-base-portuguese-uncased2
 

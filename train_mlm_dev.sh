@@ -1,8 +1,8 @@
 #!/bin/bash
 
 python train_mlm.py \
-    --config_name /dados/Workspace/mestrado/brazilian-legal-text-bert/tokenizer/config.json \
-    --tokenizer_name /dados/Workspace/mestrado/brazilian-legal-text-bert/tokenizer \
+    --config_name tokenizer/config.json \
+    --tokenizer_name tokenizer \
     --train_file resources/corpus_train.txt \
     --validation_file resources/corpus_dev.txt \
     --output_dir output/from_scratch \
@@ -31,5 +31,5 @@ python train_mlm.py \
     --max_eval_samples 10 \
     --push_to_hub \
     --use_auth_token \
-    --hub_model_id juridics/bertlaw-base-portuguese-uncased
+    --hub_model_id juridics/jurisbert-base-portuguese-uncased2
 

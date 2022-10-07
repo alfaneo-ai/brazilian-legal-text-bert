@@ -8,8 +8,9 @@ protobuf
 transformers == 4.12.5
 tokenizers==0.10.3
 googledrivedownloader>=0.4
-# sentence-transformers==2.1.0
 sentence-transformers==2.2.2
 pandas~=1.3.4
 tqdm~=4.62.3
 huggingface_hub
+gensim==4.2.0
+spacy==3.4.1
