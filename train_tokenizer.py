@@ -1,5 +1,6 @@
 import os
 
+import hunspell
 import spacy
 from gensim.corpora import Dictionary
 from tokenizers import ByteLevelBPETokenizer, BertWordPieceTokenizer
@@ -48,9 +49,11 @@ class CreateVocabulary:
         self.nlp = spacy.load('pt_core_news_lg',
                               exclude=['morphologizer', 'parser', 'ner', 'attribute_ruler', 'lemmatizer'])
         self.dictionary = Dictionary([])
+        self.spell_checker = SpellChecker()
         self.files = [
             # PathUtil.build_path('resources/corpus_train.txt'),
             PathUtil.build_path('resources/corpus_dev.txt')
+            # PathUtil.build_path('resources/bla.txt')
         ]
 
     def execute(self):
@@ -68,27 +71,45 @@ class CreateVocabulary:
         return documents
 
     def __spacy_tokenizer(self, documents: list) -> list:
-        docs = list(self.nlp.pipe(documents, n_process=-1))
+        docs = list(self.nlp.pipe(documents, n_process=8))
         tokenized_docs = list()
         for doc in docs:
             tokens = list()
             for token in doc:
                 if self.__is_valid_token(token):
-                    tokens.append(token.text)
+                    tokens.append(token.text.lower())
             tokenized_docs.append(tokens)
         return tokenized_docs
 
     def __create_dictionary(self, documents: list):
         self.dictionary.add_documents(documents)
-        output_file = PathUtil.build_path('outputs', 'dicionario.dict')
+        output_file = PathUtil.build_path('output', 'dicionario.dict')
         self.dictionary.save_as_text(output_file, sort_by_word=True)
 
-    @staticmethod
-    def __is_valid_token(token):
-        return token.is_stop is False \
-               and token.is_punct is False \
+    def __is_valid_token(self, token):
+        return token.is_punct is False \
+               and token.is_digit is False \
                and token.text.strip() != '' \
-               and token.text.find('\n') == -1
+               and token.text.find('\n') == -1 \
+               and self.spell_checker.spell(token)
+
+
+class SpellChecker:
+    def __init__(self):
+        dict_file = PathUtil.build_path('dictionary', 'pt_PT.dic')
+        aff_file = PathUtil.build_path('dictionary', 'pt_PT.aff')
+        self.checker = hunspell.HunSpell(dict_file, aff_file)
+
+    def spell(self, token):
+        try:
+            word = str(token.text)
+            typo = self.checker.spell(word)
+            if typo is False:
+                print(f'{word}')
+            return typo
+        except TypeError as err:
+            print(err)
+            return False
 
 
 if __name__ == '__main__':
