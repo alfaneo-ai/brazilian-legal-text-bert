@@ -1,4 +1,4 @@
-import os
+import string
 
 import hunspell
 import spacy
@@ -7,18 +7,19 @@ from tokenizers import ByteLevelBPETokenizer, BertWordPieceTokenizer
 
 from tools import *
 
-TARGET_MODEL_PATH = 'tokenizer'
-MAX_SEQ_LENGTH = 384
-VOCAB_SIZE = 30000
-SPECIAL_TOKENS = ['[PAD]', '[UNK]', '[CLS]', '[SEP]', '[MASK]']
 logger = AppLogger()
 
 
-class TokenizerTrainner:
+class TokenizerTrainer:
+    TARGET_MODEL_PATH = 'tokenizer'
+    MAX_SEQ_LENGTH = 384
+    VOCAB_SIZE = 30000
+    SPECIAL_TOKENS = ['[PAD]', '[UNK]', '[CLS]', '[SEP]', '[MASK]']
+
     def __init__(self):
         self.files = [
-            os.path.abspath('resources/corpus_train.txt'),
-            os.path.abspath('resources/corpus_dev.txt')
+            PathUtil.build_path('resources', 'corpus_train.txt'),
+            PathUtil.build_path('resources', 'corpus_dev.txt')
         ]
 
     def word_train(self):
@@ -29,18 +30,18 @@ class TokenizerTrainner:
             strip_accents=True,
             lowercase=True
         )
-        tokenizer.train(files=self.files, vocab_size=VOCAB_SIZE, min_frequency=5, show_progress=True,
-                        limit_alphabet=10000, wordpieces_prefix='##', special_tokens=SPECIAL_TOKENS)
-        tokenizer.save_model(TARGET_MODEL_PATH)
+        tokenizer.train(files=self.files, vocab_size=self.VOCAB_SIZE, min_frequency=5, show_progress=True,
+                        limit_alphabet=10000, wordpieces_prefix='##', special_tokens=self.SPECIAL_TOKENS)
+        tokenizer.save_model(self.TARGET_MODEL_PATH)
         logger.info('Finished tokenizer Word Level trainning')
 
     def bytes_train(self):
         logger.info('Starting tokenizer Byte Level training')
 
         tokenizer = ByteLevelBPETokenizer(lowercase=True)
-        tokenizer.train(files=self.files, vocab_size=VOCAB_SIZE, min_frequency=2, show_progress=True,
-                        special_tokens=SPECIAL_TOKENS)
-        tokenizer.save_model(TARGET_MODEL_PATH)
+        tokenizer.train(files=self.files, vocab_size=self.VOCAB_SIZE, min_frequency=2, show_progress=True,
+                        special_tokens=self.SPECIAL_TOKENS)
+        tokenizer.save_model(self.TARGET_MODEL_PATH)
         logger.info('Finished tokenizer Byte Level trainning')
 
 
@@ -51,8 +52,8 @@ class CreateVocabulary:
         self.dictionary = Dictionary([])
         self.spell_checker = SpellChecker()
         self.files = [
-            # PathUtil.build_path('resources/corpus_train.txt'),
-            PathUtil.build_path('resources/corpus_dev.txt')
+            PathUtil.build_path('resources', 'corpus_train.txt'),
+            PathUtil.build_path('resources', 'corpus_dev.txt')
             # PathUtil.build_path('resources/bla.txt')
         ]
 
@@ -76,8 +77,9 @@ class CreateVocabulary:
         for doc in docs:
             tokens = list()
             for token in doc:
-                if self.__is_valid_token(token):
-                    tokens.append(token.text.lower())
+                text = self.spell_checker.filter_invalid(token.text)
+                if self.__is_valid_token(text) and self.__is_not_null(text):
+                    tokens.append(text)
             tokenized_docs.append(tokens)
         return tokenized_docs
 
@@ -86,15 +88,18 @@ class CreateVocabulary:
         output_file = PathUtil.build_path('output', 'dicionario.dict')
         self.dictionary.save_as_text(output_file, sort_by_word=True)
 
-    def __is_valid_token(self, token):
-        return token.is_punct is False \
-               and token.is_digit is False \
-               and token.text.strip() != '' \
-               and token.text.find('\n') == -1 \
-               and self.spell_checker.spell(token)
+    @staticmethod
+    def __is_valid_token(text):
+        return text.strip() != '' and text.find('\n') == -1
+
+    @staticmethod
+    def __is_not_null(text):
+        return text and isinstance(text, str)
 
 
 class SpellChecker:
+    PUNCTUATIONS = r"""́—’‘«­�□δ!"#&'()*+:<=>@[\]^_`{|}~°½º"""
+
     def __init__(self):
         dict_file = PathUtil.build_path('dictionary', 'pt_PT.dic')
         aff_file = PathUtil.build_path('dictionary', 'pt_PT.aff')
@@ -110,6 +115,9 @@ class SpellChecker:
         except TypeError as err:
             print(err)
             return False
+
+    def filter_invalid(self, text):
+        return text.translate(str.maketrans('', '', self.PUNCTUATIONS))
 
 
 if __name__ == '__main__':
